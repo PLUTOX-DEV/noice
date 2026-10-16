@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#050507">
+<title>$NOICE - NO ICE. NO FEAR. NO SILENCE.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="assets/css/style.css">
+<style>html,body{background:#050507}</style>
+</head>
+<body class="antialiased selection:bg-[#FF2D7B] selection:text-white">
+<!-- Marquee -->
+<div class="w-full bg-[#FF2D7B] text-black py-2 overflow-hidden border-b border-black">
+  <div class="marquee flex gap-8 text-[11px] font-black tracking-widest">
+    <span>$NOICE • NO ICE. NO FEAR. NO SILENCE. • NOT A COIN. A CONVERSATION. • BUILT BY THE PEOPLE •</span>
+    <span>$NOICE • NO ICE. NO FEAR. NO SILENCE. • NOT A COIN. A CONVERSATION. • BUILT BY THE PEOPLE •</span>
+    <span>$NOICE • NO ICE. NO FEAR. NO SILENCE. • NOT A COIN. A CONVERSATION. • BUILT BY THE PEOPLE •</span>
+    <span>$NOICE • NO ICE. NO FEAR. NO SILENCE. • NOT A COIN. A CONVERSATION. • BUILT BY THE PEOPLE •</span>
+  </div>
+</div>
+
+<!-- Header -->
+<header class="sticky top-0 z-50 glass border-b border-white/10">
+  <div class="max-w-[1280px] mx-auto px-4 h-[64px] flex items-center justify-between">
+    <a href="#" class="flex items-center gap-2">
+      <img src="assets/images/logo.jpg" class="w-8 h-8 rounded-full" alt="logo" loading="eager">
+      <span class="font-black text-xl tracking-tighter" style="font-family:Syne">$NOICE</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-6 text-[11px] font-bold tracking-widest">
+      <a href="#manifesto" class="hover:text-[#FF2D7B] transition">MANIFESTO</a>
+      <a href="#rights" class="hover:text-[#FF2D7B] transition">KNOW YOUR RIGHTS</a>
+      <a href="#proof" class="hover:text-[#FF2D7B] transition">PROOF WALL</a>
+      <a href="#store" class="hover:text-[#FF2D7B] transition">STORE</a>
+    </nav>
+    <div class="flex items-center gap-3">
+      <a href="https://www.stickermule.com/noicemovement" target="_blank" class="hidden md:block text-[10px] px-4 py-2 bg-white text-black rounded-full font-black hover:bg-[#FF2D7B] hover:text-white transition">SHOP</a>
+      <button onclick="toggleMenu()" class="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5">
+        <span id="ham1" class="w-6 h-0.5 bg-white transition-all"></span>
+        <span id="ham2" class="w-6 h-0.5 bg-white transition-all"></span>
+        <span id="ham3" class="w-6 h-0.5 bg-white transition-all"></span>
+      </button>
+    </div>
+  </div>
+  <div id="mobileMenu" class="hidden md:hidden border-t border-white/10 bg-black">
+    <div class="px-4 py-6 flex flex-col gap-4 text-sm font-bold">
+      <a href="#manifesto" onclick="toggleMenu()">MANIFESTO</a>
+      <a href="#rights" onclick="toggleMenu()">KNOW YOUR RIGHTS</a>
+      <a href="#proof" onclick="toggleMenu()">PROOF WALL</a>
+      <a href="#store" onclick="toggleMenu()">STORE</a>
+      <a href="https://www.stickermule.com/noicemovement" target="_blank" class="mt-4 bg-[#FF2D7B] text-center py-3 rounded-full">VISIT STORE ↗</a>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="max-w-[1280px] mx-auto px-4 py-12 md:py-20 grid md:grid-cols-2 gap-10 items-center">
+  <div>
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] tracking-widest mb-4">● LIVE NOW • BUILT BY THE PEOPLE</div>
+    <h1 class="text-[14vw] md:text-[90px] leading-[0.85] font-black tracking-tighter" style="font-family:Syne">
+      $NOICE<br><span class="text-[#FF2D7B]">NO ICE.</span><br>NO FEAR.<br>NO SILENCE.
+    </h1>
+    <p class="mt-6 text-white/60 max-w-[420px] text-sm leading-relaxed">A community-driven meme coin turned street movement. Not a coin. A conversation. Solidarity is protocol.</p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a href="#store" class="shimmer px-8 py-4 bg-[#FF2D7B] rounded-full font-black text-sm hover:bg-[#ff4d90] transition">BUY $NOICE — SOON</a>
+      <a href="#proof" class="px-8 py-4 bg-white/5 border border-white/10 rounded-full font-bold text-sm hover:bg-white/10 transition">FOLLOW MOVEMENT</a>
+    </div>
+    <div class="mt-6 inline-flex flex-col gap-2 px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
+      <span class="text-[10px] tracking-widest text-white/50">LAUNCH • OCT 2ND 2026</span>
+      <span id="countdown" class="font-mono text-sm font-bold tracking-widest text-[#3CCFFF]">LOADING...</span>
+    </div>
+  </div>
+  <div class="relative flex justify-center">
+    <div class="absolute inset-0 bg-gradient-to-br from-[#FF2D7B]/20 to-[#3CCFFF]/20 blur-[80px] rounded-full"></div>
+    <img src="assets/images/logo.jpg" class="relative w-[320px] h-[320px] md:w-[420px] md:h-[420px] rounded-full object-cover float border border-white/10 shadow-2xl" alt="noice">
+    <div class="absolute top-10 -left-4 px-3 py-1 bg-white text-black rounded-full text-[10px] font-black rotate-[-8deg]">FUCK ICE</div>
+    <div class="absolute bottom-20 -right-2 px-3 py-1 bg-[#3CCFFF] text-black rounded-full text-[10px] font-black rotate-[8deg]">EST. 2026</div>
+    <div class="absolute top-1/2 -right-6 px-3 py-1 bg-[#FF2D7B] text-white rounded-full text-[10px] font-black">NO SILENCE</div>
+  </div>
+</section>
+
+<!-- Manifesto -->
+<section id="manifesto" class="max-w-[1280px] mx-auto px-4 py-16 border-t border-white/5">
+  <div class="grid md:grid-cols-3 gap-4">
+    <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 card-hover"><span class="text-[#FF2D7B] text-xs">01</span><h3 class="mt-3 font-black text-lg">NOT A COIN.<br>A CONVERSATION.</h3><p class="mt-3 text-sm text-white/50">We are culture, not crypto. Every holder is a witness.</p></div>
+    <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 card-hover"><span class="text-[#3CCFFF] text-xs">02</span><h3 class="mt-3 font-black text-lg">SOLIDARITY IS<br>PROTOCOL.</h3><p class="mt-3 text-sm text-white/50">Top 1000 holders get physical wheat-paste packs. IRL > URL.</p></div>
+    <div class="rounded-2xl bg-white/[0.04] border border-white/10 p-6 card-hover"><span class="text-white text-xs">03</span><h3 class="mt-3 font-black text-lg">NO TRACKERS.<br>NO DATA.</h3><p class="mt-3 text-sm text-white/50">No wallet tracking. No IP logging. Just movement.</p></div>
+  </div>
+</section>
+
+<!-- Know Your Rights -->
+<section id="rights" class="max-w-[1280px] mx-auto px-4 py-16 border-t border-white/5">
+  <div class="flex items-center gap-3 mb-8"><h2 class="text-4xl font-black" style="font-family:Syne">KNOW YOUR RIGHTS</h2><span class="px-2 py-1 bg-[#FF2D7B] rounded-full text-[10px] font-black">FREE PDF</span></div>
+  <div class="grid md:grid-cols-2 gap-8 items-start">
+    <div class="rounded-2xl overflow-hidden border border-white/10 bg-[#0a0a0f] cursor-pointer" onclick="openCardModal()"><img src="assets/images/know-your-rights.jpg" class="w-full" loading="lazy" alt="know rights"></div>
+    <div class="space-y-4">
+      <h3 class="text-2xl font-black">You Have Constitutional Rights!</h3>
+      <p class="text-sm text-white/70 leading-relaxed">I do not wish to speak with you, answer your questions, sign or hand you any documents based on my 5th Amendment rights under the United States Constitution. I do not give you permission to enter my home based on my 4th Amendment rights unless you have a warrant signed by a judge with my name on it that you slide under the door. I do not give you permission to search any of my belongings based on my 4th Amendment rights. I choose to exercise my constitutional rights.</p>
+      <ul class="text-xs text-white/50 space-y-1 list-disc pl-4">
+        <li>Right to remain silent (5th Amendment)</li>
+        <li>Right to refuse searches without warrant (4th)</li>
+        <li>Right to attorney</li>
+        <li>Right to record ICE in public</li>
+        <li>Do not open door unless judge-signed warrant</li>
+      </ul>
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button onclick="downloadPDF()" class="px-6 py-3 bg-[#FF2D7B] rounded-full font-black text-xs hover:bg-[#ff4d90] transition">DOWNLOAD PDF ↓</button>
+        <button onclick="openCardModal()" class="px-6 py-3 bg-white/10 border border-white/20 rounded-full font-bold text-xs hover:bg-white/20 transition">VIEW FULL CARD</button>
+        <button onclick="openPDFModal()" class="px-6 py-3 bg-white text-black rounded-full font-black text-xs hover:bg-white/90 transition">VIEW PDF ↗</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Proof Wall -->
+<section id="proof" class="max-w-[1280px] mx-auto px-4 py-16 border-t border-white/5">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div class="flex items-center gap-3"><h2 class="text-4xl font-black" style="font-family:Syne">PROOF WALL // LIVE FEED</h2><span class="px-2 py-1 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-[10px] animate-pulse">● LIVE</span></div>
+    <button onclick="refreshFeed()" class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[11px] font-bold hover:bg-white/10 transition">↻ REFRESH FEED</button>
+  </div>
+  <div id="tiktokGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 transition-opacity duration-200"></div>
+</section>
+
+<!-- Store -->
+<section id="store" class="max-w-[1280px] mx-auto px-4 py-16 border-t border-white/5">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <h2 class="text-4xl font-black" style="font-family:Syne">STICKER PACK // STREET STORE 2026</h2>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="px-6 py-3 bg-white text-black rounded-full font-black text-xs hover:bg-[#FF2D7B] hover:text-white transition">VISIT STICKERMULE STORE ↗</a>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-1.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">ICE CUBE STOMP</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-2.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">MIDDLE FINGER ICE</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-3.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">NO ICE NO FEAR CITY</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-4.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">MELTING CUBE</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-5.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">$NOICE GRAFFITI</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-6.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">DEAD ICE</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-7.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">SKATE $NOICE</p></a>
+    <a href="https://www.stickermule.com/noicemovement" target="_blank" class="rounded-2xl bg-[#0a0a0f] border border-white/10 p-3 card-hover"><img src="assets/images/sticker-8.jpg" loading="lazy" class="w-full aspect-square object-contain"><p class="mt-2 text-[10px] font-bold">DRIPPY $NOICE</p></a>
+  </div>
+</section>
+
+<footer class="border-t border-white/5 py-12 text-center text-[11px] text-white/30">
+  <p>$NOICE • NO ICE. NO FEAR. NO SILENCE. • BUILT BY THE PEOPLE • 2026</p>
+  <p class="mt-2"><a href="https://www.stickermule.com/noicemovement" target="_blank" class="underline hover:text-white">stickermule.com/noicemovement</a></p>
+</footer>
+
+<!-- Modals -->
+<div id="cardModal" class="hidden fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onclick="closeModal('cardModal')">
+  <div class="relative max-w-[600px] w-full"><button class="absolute -top-10 right-0 text-white text-xl" onclick="closeModal('cardModal')">✕</button><img src="assets/images/know-your-rights.jpg" class="w-full rounded-2xl"></div>
+</div>
+<div id="pdfModal" class="hidden fixed inset-0 z-[100] bg-black/90 flex flex-col p-4" >
+  <div class="flex justify-between items-center mb-4"><h3 class="font-black">KNOW YOUR RIGHTS - PDF</h3><div class="flex gap-2"><button onclick="downloadPDF()" class="px-4 py-2 bg-[#FF2D7B] rounded-full text-xs font-black">DOWNLOAD</button><button onclick="closeModal('pdfModal')" class="w-8 h-8 bg-white/10 rounded-full">✕</button></div></div>
+  <iframe id="pdfFrame" class="flex-1 w-full bg-white rounded-2xl" style="min-height:70vh"></iframe>
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
