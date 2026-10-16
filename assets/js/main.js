@@ -99,7 +99,7 @@ function refreshTokenChart() {
   const link = document.getElementById('chartOpenLink');
   if (!frame) return;
   setTokenChartStatus('Checking indexed Solana trading pairs…');
-  fetch('https://api.dexscreener.com/latest/dex/tokens/' + encodeURIComponent(NOICE_TOKEN_MINT), {
+  fetch('https://api.dexscreener.com/token-pairs/v1/solana/' + encodeURIComponent(NOICE_TOKEN_MINT), {
     headers: { accept: 'application/json' },
     cache: 'no-store'
   }).then(response => {
@@ -107,7 +107,7 @@ function refreshTokenChart() {
     return response.json();
   }).then(data => {
     if (requestId !== tokenChartRequest) return;
-    const pairs = Array.isArray(data.pairs) ? data.pairs : [];
+    const pairs = Array.isArray(data) ? data : (Array.isArray(data.pairs) ? data.pairs : []);
     const solanaPairs = pairs.filter(pair => pair && pair.chainId === 'solana' && pair.pairAddress);
     solanaPairs.sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0));
     const pair = solanaPairs[0];
@@ -130,14 +130,18 @@ function refreshTokenChart() {
     setTokenMetric('tokenLiquidity', formatCompactUsd(pair.liquidity && pair.liquidity.usd));
     setTokenMetric('tokenVolume', formatCompactUsd(pair.volume && pair.volume.h24));
     if (link) link.href = pairUrl;
-    frame.innerHTML = '';
-    const iframe = document.createElement('iframe');
-    iframe.title = 'Live DEX Screener chart for the selected Solana token pair';
-    iframe.loading = 'lazy';
-    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-    iframe.allow = 'clipboard-write';
-    iframe.src = 'https://dexscreener.com/solana/' + encodeURIComponent(pair.pairAddress) + '?embed=1&theme=dark&trades=0&info=0';
-    frame.appendChild(iframe);
+    let iframe = frame.querySelector('iframe');
+    if (!iframe || frame.dataset.pairAddress !== pair.pairAddress) {
+      frame.innerHTML = '';
+      iframe = document.createElement('iframe');
+      iframe.title = 'Live DEX Screener chart for the selected Solana token pair';
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.allow = 'clipboard-write';
+      iframe.src = 'https://dexscreener.com/solana/' + encodeURIComponent(pair.pairAddress) + '?embed=1&theme=dark&trades=0&info=0';
+      frame.appendChild(iframe);
+      frame.dataset.pairAddress = pair.pairAddress;
+    }
     const baseName = pair.baseToken && pair.baseToken.name ? pair.baseToken.name : 'Token';
     const quoteName = pair.quoteToken && pair.quoteToken.symbol ? pair.quoteToken.symbol : 'pair';
     setTokenChartStatus('Showing ' + baseName + ' / ' + quoteName + ' · DEX Screener · updated ' + new Date().toLocaleTimeString());
