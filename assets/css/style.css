@@ -1,0 +1,48 @@
+
+/* $NOICE - Fixed scroll, no white flash, smooth all devices */
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#050507;overflow-x:hidden;overflow-y:auto;height:auto;overscroll-behavior-y:none;-webkit-overflow-scrolling:touch}
+body{background:#050507;color:#fff;overflow-x:hidden;overflow-y:auto;min-height:100vh;height:auto;position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior-y:none;font-family:'Space Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+h1,h2,h3{font-family:'Syne',sans-serif}
+.marquee{animation:marquee 80s linear infinite;white-space:nowrap;will-change:transform}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.marquee:hover{animation-play-state:paused}
+.glass{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(5,5,7,0.85);-webkit-transform:translateZ(0);transform:translateZ(0)}
+.card-hover{transition:transform .3s cubic-bezier(.4,0,.2,1),border-color .3s,box-shadow .3s;will-change:transform}
+.card-hover:hover{transform:translateY(-4px) translateZ(0);border-color:rgba(255,45,123,.4);box-shadow:0 10px 40px rgba(255,45,123,.12)}
+.tiktok-facade{position:relative;aspect-ratio:9/16;background:linear-gradient(135deg,#0a0a0f 0%,#14141f 100%);cursor:pointer;overflow:hidden;-webkit-transform:translateZ(0)}
+.tiktok-facade:hover .play{transform:scale(1.08)}
+.play{transition:transform .2s cubic-bezier(.4,0,.2,1);width:56px;height:56px;background:#FF2D7B;border-radius:50%;display:flex;align-items:center;justify-content:center;will-change:transform}
+.shimmer{position:relative;overflow:hidden}
+.shimmer:after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:shimmer 2s infinite}
+@keyframes shimmer{100%{left:100%}}
+.float{animation:float 6s ease-in-out infinite;will-change:transform}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+img{max-width:100%;height:auto}
+
+
+/* Live chart + accessible motion preferences */
+html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+a:focus-visible, button:focus-visible { outline: 2px solid #3CCFFF; outline-offset: 4px; }
+.chart-shell { background: radial-gradient(ellipse at top right, rgba(255,45,123,.09), transparent 42%), #08080c; box-shadow: 0 24px 80px rgba(0,0,0,.22); }
+.live-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#3CCFFF; box-shadow:0 0 12px rgba(60,207,255,.8); animation: chartPulse 1.8s ease-in-out infinite; }
+@keyframes chartPulse { 50% { opacity:.4; box-shadow:0 0 3px rgba(60,207,255,.3); } }
+.token-chart-frame { min-height: 420px; background: #050507; position:relative; }
+.token-chart-frame iframe { display:block; width:100%; height:520px; border:0; background:#050507; }
+.chart-placeholder { min-height:420px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px 20px; }
+.chart-placeholder-mark { width:56px; height:56px; display:grid; place-items:center; border:1px solid rgba(255,45,123,.5); border-radius:18px; color:#FF2D7B; font-family:Syne,sans-serif; font-size:28px; font-weight:800; box-shadow:0 0 42px rgba(255,45,123,.12); }
+@media(max-width:640px) { .token-chart-frame, .chart-placeholder { min-height:360px; } .token-chart-frame iframe { height:420px; } }
+@media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; } }
+
+
+/* Native candlestick chart controls and responsive chart surface */
+.chart-toolbar { background:rgba(255,255,255,.015); }
+.chart-interval { min-width:42px; padding:8px 11px; border:1px solid transparent; border-radius:9px; color:rgba(255,255,255,.48); font-size:10px; font-weight:800; letter-spacing:.08em; transition:background .18s ease,color .18s ease,border-color .18s ease; }
+.chart-interval:hover { color:#fff; background:rgba(255,255,255,.06); }
+.chart-interval.active { color:#fff; background:rgba(255,45,123,.14); border-color:rgba(255,45,123,.48); }
+.chart-interval:focus-visible { outline:2px solid #3CCFFF; outline-offset:2px; }
+.token-chart-frame { min-height:400px; height:clamp(360px, 48vw, 520px); position:relative; background:#07070a; }
+.token-chart-frame #noiceCandleChart { width:100%; height:100%; }
+.chart-placeholder { min-height:400px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:32px 20px; }
+.chart-placeholder-mark { width:56px; height:56px; display:grid; place-items:center; border:1px solid rgba(255,45,123,.5); border-radius:18px; color:#FF2D7B; font-family:Syne,sans-serif; font-size:28px; font-weight:800; box-shadow:0 0 42px rgba(255,45,123,.12); }
+@media(max-width:640px) { .token-chart-frame { height:390px; min-height:390px; } .chart-placeholder { min-height:390px; } .chart-interval { min-width:38px; padding:8px 9px; } }
