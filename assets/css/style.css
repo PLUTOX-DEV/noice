@@ -33,3 +33,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid #3CCFFF; outline-offs
 .chart-placeholder-mark { width:56px; height:56px; display:grid; place-items:center; border:1px solid rgba(255,45,123,.5); border-radius:18px; color:#FF2D7B; font-family:Syne,sans-serif; font-size:28px; font-weight:800; box-shadow:0 0 42px rgba(255,45,123,.12); }
 @media(max-width:640px) { .token-chart-frame, .chart-placeholder { min-height:360px; } .token-chart-frame iframe { height:420px; } }
 @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; } }
+
+
+/* TikTok feed: actual video artwork takes the place of emoji placeholders. */
+.feed-video-card { min-width:0; }
+.feed-video-media { aspect-ratio: 9 / 16; min-height: 280px; isolation:isolate; }
+.feed-video-thumbnail { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; transition:transform .5s cubic-bezier(.2,.7,.2,1), filter .35s ease; }
+.feed-video-card:hover .feed-video-thumbnail { transform:scale(1.045); filter:brightness(1.08); }
+.feed-video-shade { position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg,rgba(0,0,0,.05) 15%,rgba(0,0,0,.08) 38%,rgba(0,0,0,.88) 100%); }
+.feed-video-copy { position:absolute; z-index:2; inset:auto 0 0; padding:clamp(14px,3vw,22px); pointer-events:none; }
+.feed-video-fallback { position:absolute; inset:0; display:grid; place-items:center; padding:24px; text-align:center; font-size:10px; letter-spacing:.2em; font-weight:800; color:rgba(255,255,255,.5); background:radial-gradient(ellipse at 50% 35%,rgba(255,45,123,.18),transparent 58%),linear-gradient(145deg,#171720,#07070a); }
+.feed-video-no-thumbnail .feed-video-shade { background:linear-gradient(180deg,transparent 5%,rgba(0,0,0,.9) 100%); }
+@media(max-width:480px) { .feed-video-media { min-height:220px; } .feed-video-copy { padding:12px; } }
