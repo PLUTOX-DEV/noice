@@ -21,44 +21,114 @@ function toggleMenu(){
   const h1=document.getElementById('ham1'), h2=document.getElementById('ham2'), h3=document.getElementById('ham3');
   if(h1){ h1.classList.toggle('rotate-45'); h1.classList.toggle('translate-y-1.5'); } if(h2){ h2.classList.toggle('opacity-0'); } if(h3){ h3.classList.toggle('-rotate-45'); h3.classList.toggle('-translate-y-1.5'); }
 }
-const feedData=[
-  {id:'7593869264092679425',title:'GAS STATION CONFRONTATION',likes:'2.9M',icon:'⛽',grad:'from-red-500/20 to-orange-500/20',accent:'text-red-400'},
-  {id:'7600822292976782647',title:'PASSPORT CHECK - KNOW YOUR RIGHTS',likes:'1.2M',icon:'🛂',grad:'from-blue-500/20 to-cyan-500/20',accent:'text-blue-400'},
-  {id:'7593869264092679425',title:'ICE RAID - WITNESS',likes:'890K',icon:'👁️',grad:'from-pink-500/20 to-rose-500/20',accent:'text-pink-400'},
-  {id:'7600822292976782647',title:'NO ICE NO FEAR - PROTEST',likes:'2.1M',icon:'✊',grad:'from-yellow-500/20 to-orange-500/20',accent:'text-yellow-400'},
-  {id:'7593869264092679425',title:'CONSTITUTIONAL RIGHTS - RECORD',likes:'1.5M',icon:'📹',grad:'from-green-500/20 to-emerald-500/20',accent:'text-green-400'},
-  {id:'7600822292976782647',title:'SOLIDARITY IS PROTOCOL',likes:'3.3M',icon:'🤝',grad:'from-purple-500/20 to-violet-500/20',accent:'text-purple-400'},
+// Curated TikTok links. Thumbnails, titles and creator names come from TikTok's public oEmbed response.
+const feedData = [
+  { url: 'https://www.tiktok.com/@cbcnews/video/7593869264092679425' },
+  { url: 'https://www.tiktok.com/@cbcnews/video/7600822292976782647' }
 ];
-function refreshFeed(){
-  const grid=document.getElementById('tiktokGrid'); if(!grid) return;
-  grid.style.opacity='0'; grid.style.transform='scale(0.98)';
-  setTimeout(()=>{ feedData.sort(()=>Math.random()-0.5); renderFeed(); grid.style.opacity='1'; grid.style.transform='scale(1)'; },200);
+
+function makeFeedCard(video, metadata) {
+  const card = document.createElement('a');
+  card.href = video.url;
+  card.target = '_blank';
+  card.rel = 'noopener noreferrer';
+  card.className = 'feed-video-card group relative rounded-2xl overflow-hidden bg-[#0a0a0f] border border-white/10 card-hover block';
+  card.setAttribute('aria-label', 'Watch ' + (metadata.title || 'this video') + ' on TikTok');
+
+  const media = document.createElement('div');
+  media.className = 'feed-video-media relative overflow-hidden bg-gradient-to-br from-[#191923] to-[#08080c]';
+  if (metadata.thumbnail_url && /^https:\/\//i.test(metadata.thumbnail_url)) {
+    const image = document.createElement('img');
+    image.src = metadata.thumbnail_url;
+    image.alt = metadata.title ? 'Video thumbnail: ' + metadata.title : 'TikTok video thumbnail';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'strict-origin-when-cross-origin';
+    image.className = 'feed-video-thumbnail';
+    image.addEventListener('error', () => {
+      image.remove();
+      media.classList.add('feed-video-no-thumbnail');
+      const fallback = document.createElement('div');
+      fallback.className = 'feed-video-fallback';
+      fallback.textContent = 'VIDEO PREVIEW UNAVAILABLE';
+      media.prepend(fallback);
+    }, { once: true });
+    media.appendChild(image);
+  } else {
+    media.classList.add('feed-video-no-thumbnail');
+    const fallback = document.createElement('div');
+    fallback.className = 'feed-video-fallback';
+    fallback.textContent = 'VIDEO PREVIEW UNAVAILABLE';
+    media.appendChild(fallback);
+  }
+
+  const shade = document.createElement('div');
+  shade.className = 'feed-video-shade';
+  media.appendChild(shade);
+
+  const content = document.createElement('div');
+  content.className = 'feed-video-copy';
+  const creator = document.createElement('p');
+  creator.className = 'text-[10px] font-bold tracking-[0.16em] text-[#3CCFFF] uppercase';
+  creator.textContent = metadata.author_name ? '@' + metadata.author_name : 'TIKTOK VIDEO';
+  const title = document.createElement('h3');
+  title.className = 'mt-2 text-base md:text-lg font-black leading-snug';
+  title.textContent = metadata.title || 'Watch this video on TikTok';
+  const action = document.createElement('span');
+  action.className = 'mt-4 inline-flex items-center gap-2 px-4 py-2.5 bg-[#FF2D7B] rounded-full text-[10px] font-black tracking-widest group-hover:bg-white group-hover:text-black transition-colors';
+  action.textContent = 'WATCH ON TIKTOK ↗';
+  content.append(creator, title, action);
+  media.appendChild(content);
+  card.appendChild(media);
+  return card;
 }
-function renderFeed(){
-  const grid=document.getElementById('tiktokGrid'); if(!grid) return;
-  grid.innerHTML=feedData.map(f=>`
-    <a href="https://www.tiktok.com/@cbcnews/video/${f.id}" target="_blank" rel="noopener" class="group relative rounded-2xl overflow-hidden bg-[#0a0a0f] border border-white/10 card-hover block">
-      <div class="relative aspect-[9/16] overflow-hidden bg-gradient-to-br ${f.grad}">
-        <div class="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_20%,rgba(255,255,255,0.15),transparent_60%)]"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-        <div class="absolute inset-0 p-4 flex flex-col justify-between">
-          <div class="flex justify-between items-start">
-            <span class="text-2xl bg-black/60 backdrop-blur px-2.5 py-1 rounded-full border border-white/10">${f.icon}</span>
-            <span class="text-[10px] px-2.5 py-1 rounded-full bg-white/10 ${f.accent} border border-white/10 backdrop-blur font-bold">${f.likes} ♡</span>
-          </div>
-          <div class="space-y-4">
-            <div class="flex justify-center"><div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-200"><svg width="22" height="22" fill="black" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
-            <div>
-              <p class="font-black text-[13px] leading-tight tracking-tight">${f.title}</p>
-              <p class="text-[9px] text-white/60 mt-1 tracking-widest">LIVE ON TIKTOK • VERIFIED</p>
-              <div class="mt-3 inline-flex items-center gap-2 px-5 py-2.5 bg-[#FF2D7B] rounded-full text-[11px] font-black tracking-widest group-hover:bg-white group-hover:text-black transition-colors">WATCH NOW ↗</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </a>
-  `).join('');
+
+async function renderFeed() {
+  const grid = document.getElementById('tiktokGrid');
+  if (!grid) return;
+  grid.setAttribute('aria-busy', 'true');
+  grid.innerHTML = '';
+  const status = document.createElement('p');
+  status.className = 'col-span-full text-xs text-white/45 py-4';
+  status.textContent = 'Loading video thumbnails from TikTok…';
+  grid.appendChild(status);
+
+  const cards = await Promise.all(feedData.map(async video => {
+    try {
+      const endpoint = 'https://www.tiktok.com/oembed?url=' + encodeURIComponent(video.url);
+      const response = await fetch(endpoint, { headers: { accept: 'application/json' }, cache: 'no-store' });
+      if (!response.ok) throw new Error('TikTok preview request failed');
+      const metadata = await response.json();
+      return makeFeedCard(video, {
+        thumbnail_url: metadata.thumbnail_url || '',
+        title: metadata.title || '',
+        author_name: metadata.author_name || ''
+      });
+    } catch (error) {
+      return makeFeedCard(video, { thumbnail_url: '', title: '', author_name: '' });
+    }
+  }));
+
+  grid.innerHTML = '';
+  cards.forEach(card => grid.appendChild(card));
+  if (cards.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'col-span-full text-sm text-white/50 py-8';
+    empty.textContent = 'No videos are configured yet.';
+    grid.appendChild(empty);
+  }
+  grid.setAttribute('aria-busy', 'false');
 }
+
+function refreshFeed() {
+  const grid = document.getElementById('tiktokGrid');
+  if (!grid) return;
+  grid.style.opacity = '0.55';
+  renderFeed().finally(() => {
+    grid.style.transition = 'opacity .2s ease';
+    grid.style.opacity = '1';
+  });
+}
+
 function startCountdown(){
   const target=new Date('2026-10-02T00:00:00Z').getTime(); const el=document.getElementById('countdown'); if(!el) return;
   function tick(){ const now=Date.now(); const diff=target-now; if(diff<=0){ el.textContent='LIVE NOW 🔥'; return; } const d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000); el.textContent=`LAUNCH IN: ${d}D : ${String(h).padStart(2,'0')}H : ${String(m).padStart(2,'0')}M : ${String(s).padStart(2,'0')}S`; }
