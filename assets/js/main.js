@@ -64,5 +64,93 @@ function startCountdown(){
   function tick(){ const now=Date.now(); const diff=target-now; if(diff<=0){ el.textContent='LIVE NOW 🔥'; return; } const d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000); el.textContent=`LAUNCH IN: ${d}D : ${String(h).padStart(2,'0')}H : ${String(m).padStart(2,'0')}M : ${String(s).padStart(2,'0')}S`; }
   tick(); setInterval(tick,1000);
 }
-document.addEventListener('DOMContentLoaded',()=>{ renderFeed(); startCountdown(); });
+document.addEventListener('DOMContentLoaded',()=>{ renderFeed(); startCountdown(); refreshTokenChart(); tokenChartRefreshTimer = setInterval(refreshTokenChart, 60000); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('cardModal'); closeModal('pdfModal'); const mm=document.getElementById('mobileMenu'); if(mm && !mm.classList.contains('hidden')){ mm.classList.add('hidden'); document.body.style.overflow=''; } } });
+
+
+// Live Solana market chart. Never fabricate market metrics: display values only from DEX Screener.
+const NOICE_TOKEN_MINT = 'Exyiv42pjmJtvEi24D3saJJnRCVFwGuj2SVYrCg5moon';
+let tokenChartRefreshTimer = null;
+let tokenChartRequest = 0;
+function formatUsd(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  const n = Number(value);
+  if (Math.abs(n) >= 1) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 4 });
+  if (n === 0) return '$0';
+  return '$' + n.toLocaleString('en-US', { maximumSignificantDigits: 4 });
+}
+function formatCompactUsd(value) {
+  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2 }).format(Number(value));
+}
+function setTokenChartStatus(message) {
+  const status = document.getElementById('chartStatus');
+  if (status) status.textContent = message;
+}
+function setTokenMetric(id, value, className) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value;
+  if (className) el.className = className;
+}
+function refreshTokenChart() {
+  const requestId = ++tokenChartRequest;
+  const frame = document.getElementById('tokenChartFrame');
+  const link = document.getElementById('chartOpenLink');
+  if (!frame) return;
+  setTokenChartStatus('Checking indexed Solana trading pairs…');
+  fetch('https://api.dexscreener.com/token-pairs/v1/solana/' + encodeURIComponent(NOICE_TOKEN_MINT), {
+    headers: { accept: 'application/json' },
+    cache: 'no-store'
+  }).then(response => {
+    if (!response.ok) throw new Error('Market data request returned ' + response.status);
+    return response.json();
+  }).then(data => {
+    if (requestId !== tokenChartRequest) return;
+    const pairs = Array.isArray(data) ? data : (Array.isArray(data.pairs) ? data.pairs : []);
+    const solanaPairs = pairs.filter(pair => pair && pair.chainId === 'solana' && pair.pairAddress);
+    solanaPairs.sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0));
+    const pair = solanaPairs[0];
+    if (!pair) {
+      frame.innerHTML = '<div class="chart-placeholder"><div class="chart-placeholder-mark">N</div><p class="mt-4 font-black tracking-widest">NO INDEXED MARKET FOUND</p><p class="mt-2 max-w-md text-xs text-white/45 leading-relaxed">DEX Screener has not returned a Solana trading pair for this address yet. The chart is intentionally left blank rather than showing invented prices.</p><a class="mt-5 inline-flex px-5 py-3 rounded-full bg-white text-black text-xs font-black" href="https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT) + '" target="_blank" rel="noopener noreferrer">CHECK DEX SCREENER ↗</a></div>';
+      if (link) link.href = 'https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT);
+      setTokenMetric('tokenPrice', '—');
+      setTokenMetric('tokenChange', '—');
+      setTokenMetric('tokenLiquidity', '—');
+      setTokenMetric('tokenVolume', '—');
+      setTokenChartStatus('No indexed Solana pair found for this mint. Check back later or open DEX Screener directly.');
+      return;
+    }
+    const pairUrl = pair.url || ('https://dexscreener.com/solana/' + pair.pairAddress);
+    const change = pair.priceChange && pair.priceChange.h24;
+    const changeText = change === undefined || change === null || !Number.isFinite(Number(change)) ? '—' : (Number(change) > 0 ? '+' : '') + Number(change).toFixed(2) + '%';
+    const changeClass = 'mt-2 text-xl md:text-2xl font-black ' + (change > 0 ? 'text-emerald-400' : change < 0 ? 'text-rose-400' : '');
+    setTokenMetric('tokenPrice', formatUsd(pair.priceUsd));
+    setTokenMetric('tokenChange', changeText, changeClass);
+    setTokenMetric('tokenLiquidity', formatCompactUsd(pair.liquidity && pair.liquidity.usd));
+    setTokenMetric('tokenVolume', formatCompactUsd(pair.volume && pair.volume.h24));
+    if (link) link.href = pairUrl;
+    let iframe = frame.querySelector('iframe');
+    if (!iframe || frame.dataset.pairAddress !== pair.pairAddress) {
+      frame.innerHTML = '';
+      iframe = document.createElement('iframe');
+      iframe.title = 'Live DEX Screener chart for the selected Solana token pair';
+      iframe.loading = 'lazy';
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      iframe.allow = 'clipboard-write';
+      iframe.src = 'https://dexscreener.com/solana/' + encodeURIComponent(pair.pairAddress) + '?embed=1&theme=dark&trades=0&info=0';
+      frame.appendChild(iframe);
+      frame.dataset.pairAddress = pair.pairAddress;
+    }
+    const baseName = pair.baseToken && pair.baseToken.name ? pair.baseToken.name : 'Token';
+    const quoteName = pair.quoteToken && pair.quoteToken.symbol ? pair.quoteToken.symbol : 'pair';
+    setTokenChartStatus('Showing ' + baseName + ' / ' + quoteName + ' · DEX Screener · updated ' + new Date().toLocaleTimeString());
+  }).catch(error => {
+    if (requestId !== tokenChartRequest) return;
+    setTokenChartStatus('Market data could not be loaded right now. Check your connection or open DEX Screener directly.');
+    if (!frame.querySelector('iframe')) {
+      frame.innerHTML = '<div class="chart-placeholder"><div class="chart-placeholder-mark">N</div><p class="mt-4 font-black tracking-widest">MARKET DATA TEMPORARILY UNAVAILABLE</p><p class="mt-2 text-xs text-white/45">Please try again in a moment.</p><button type="button" onclick="refreshTokenChart()" class="mt-5 px-5 py-3 rounded-full border border-white/15 text-xs font-black hover:border-[#FF2D7B]">TRY AGAIN</button></div>';
+    }
+    if (link) link.href = 'https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT);
+  });
+}

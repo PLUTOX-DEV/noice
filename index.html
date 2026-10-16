@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050507">
 <title>$NOICE - NO ICE. NO FEAR. NO SILENCE.</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,6 +33,7 @@
     </a>
     <nav class="hidden md:flex items-center gap-6 text-[11px] font-bold tracking-widest">
       <a href="#manifesto" class="hover:text-[#FF2D7B] transition">MANIFESTO</a>
+      <a href="#token-chart" class="hover:text-[#FF2D7B] transition">TOKEN CHART</a>
       <a href="#rights" class="hover:text-[#FF2D7B] transition">KNOW YOUR RIGHTS</a>
       <a href="#proof" class="hover:text-[#FF2D7B] transition">PROOF WALL</a>
       <a href="#store" class="hover:text-[#FF2D7B] transition">STORE</a>
@@ -49,6 +50,7 @@
   <div id="mobileMenu" class="hidden md:hidden border-t border-white/10 bg-black">
     <div class="px-4 py-6 flex flex-col gap-4 text-sm font-bold">
       <a href="#manifesto" onclick="toggleMenu()">MANIFESTO</a>
+      <a href="#token-chart" onclick="toggleMenu()">TOKEN CHART</a>
       <a href="#rights" onclick="toggleMenu()">KNOW YOUR RIGHTS</a>
       <a href="#proof" onclick="toggleMenu()">PROOF WALL</a>
       <a href="#store" onclick="toggleMenu()">STORE</a>
@@ -80,6 +82,34 @@
     <div class="absolute top-10 -left-4 px-3 py-1 bg-white text-black rounded-full text-[10px] font-black rotate-[-8deg]">FUCK ICE</div>
     <div class="absolute bottom-20 -right-2 px-3 py-1 bg-[#3CCFFF] text-black rounded-full text-[10px] font-black rotate-[8deg]">EST. 2026</div>
     <div class="absolute top-1/2 -right-6 px-3 py-1 bg-[#FF2D7B] text-white rounded-full text-[10px] font-black">NO SILENCE</div>
+  </div>
+</section>
+
+<!-- Live token chart -->
+<section id="token-chart" class="max-w-[1280px] mx-auto px-4 py-16 border-t border-white/5">
+  <div class="chart-shell rounded-3xl border border-white/10 overflow-hidden">
+    <div class="p-5 md:p-8 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#3CCFFF]/10 border border-[#3CCFFF]/20 text-[#3CCFFF] text-[10px] font-black tracking-[0.18em] mb-4"><span class="live-dot"></span> SOLANA MARKET // LIVE DATA</div>
+        <h2 class="text-3xl md:text-5xl font-black tracking-tight" style="font-family:Syne">TRACK THE <span class="text-[#FF2D7B]">NOISE.</span></h2>
+        <p class="mt-3 max-w-2xl text-sm text-white/55 leading-relaxed">Live market chart for the supplied Solana token address. Market data is provided by DEX Screener and may be delayed or unavailable for unindexed tokens.</p>
+      </div>
+      <a id="chartOpenLink" href="https://dexscreener.com/solana" target="_blank" rel="noopener noreferrer" class="inline-flex justify-center items-center gap-2 px-5 py-3 rounded-full bg-white text-black text-xs font-black hover:bg-[#FF2D7B] hover:text-white transition">OPEN FULL CHART ↗</a>
+    </div>
+    <div class="chart-stats grid grid-cols-2 md:grid-cols-4 gap-px border-y border-white/10 bg-white/10">
+      <div class="bg-[#09090d] p-4 md:p-5"><p class="text-[10px] tracking-widest text-white/40">TOKEN PRICE</p><p id="tokenPrice" class="mt-2 text-xl md:text-2xl font-black">—</p></div>
+      <div class="bg-[#09090d] p-4 md:p-5"><p class="text-[10px] tracking-widest text-white/40">24H CHANGE</p><p id="tokenChange" class="mt-2 text-xl md:text-2xl font-black">—</p></div>
+      <div class="bg-[#09090d] p-4 md:p-5"><p class="text-[10px] tracking-widest text-white/40">LIQUIDITY</p><p id="tokenLiquidity" class="mt-2 text-xl md:text-2xl font-black">—</p></div>
+      <div class="bg-[#09090d] p-4 md:p-5"><p class="text-[10px] tracking-widest text-white/40">24H VOLUME</p><p id="tokenVolume" class="mt-2 text-xl md:text-2xl font-black">—</p></div>
+    </div>
+    <div id="chartStatus" class="px-5 py-3 text-xs text-white/50 border-b border-white/10" role="status" aria-live="polite">Connecting to market data…</div>
+    <div id="tokenChartFrame" class="token-chart-frame">
+      <div class="chart-placeholder"><div class="chart-placeholder-mark">N</div><p class="mt-4 font-black tracking-widest">LOADING MARKET CHART</p><p class="mt-2 text-xs text-white/45">Finding the active Solana trading pair…</p></div>
+    </div>
+    <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] text-white/40">
+      <code id="tokenMint" class="break-all">Exyiv42pjmJtvEi24D3saJJnRCVFwGuj2SVYrCg5moon</code>
+      <button type="button" onclick="refreshTokenChart()" class="self-start sm:self-auto px-4 py-2 rounded-full border border-white/15 hover:border-[#FF2D7B] hover:text-white transition">↻ REFRESH MARKET DATA</button>
+    </div>
   </div>
 </section>
 
