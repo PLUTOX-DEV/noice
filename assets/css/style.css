@@ -65,7 +65,7 @@ body {
   overflow-y: visible !important;
   overscroll-behavior-y: auto;
 }
-body.modal-open {
+html.modal-open {
   overflow: hidden !important;
 }
 #mobileMenu { max-height: min(72vh, 560px); overflow-y: auto; overscroll-behavior: contain; }
