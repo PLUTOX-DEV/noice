@@ -11,10 +11,10 @@ function downloadPDF(){
 }
 function openPDFModal(){
   try{ const bin=atob(PDF_B64); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); const blob=new Blob([bytes],{type:'application/pdf'}); const url=URL.createObjectURL(blob); document.getElementById('pdfFrame').src=url; }catch(e){}
-  document.getElementById('pdfModal').classList.remove('hidden'); document.body.style.overflow='hidden';
+  document.getElementById('pdfModal').classList.remove('hidden'); document.documentElement.classList.add('modal-open');
 }
 function openCardModal(){ document.getElementById('cardModal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
-function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; if(id==='pdfModal') document.getElementById('pdfFrame').src=''; }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.documentElement.classList.remove('modal-open'); document.body.style.removeProperty('overflow'); if(id==='pdfModal') document.getElementById('pdfFrame').src=''; }
 function toggleMenu(){
   const m = document.getElementById('mobileMenu');
   if (!m) return;
