@@ -16,10 +16,20 @@ function openPDFModal(){
 function openCardModal(){ document.getElementById('cardModal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
 function closeModal(id){ document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; if(id==='pdfModal') document.getElementById('pdfFrame').src=''; }
 function toggleMenu(){
-  const m=document.getElementById('mobileMenu'); const isHidden=m.classList.contains('hidden');
-  if(isHidden){ m.classList.remove('hidden'); document.body.style.overflow='hidden'; } else { m.classList.add('hidden'); document.body.style.overflow=''; }
-  const h1=document.getElementById('ham1'), h2=document.getElementById('ham2'), h3=document.getElementById('ham3');
-  if(h1){ h1.classList.toggle('rotate-45'); h1.classList.toggle('translate-y-1.5'); } if(h2){ h2.classList.toggle('opacity-0'); } if(h3){ h3.classList.toggle('-rotate-45'); h3.classList.toggle('-translate-y-1.5'); }
+  const m = document.getElementById('mobileMenu');
+  if (!m) return;
+  const isOpening = m.classList.contains('hidden');
+  m.classList.toggle('hidden', !isOpening);
+
+  // The mobile navigation is a dropdown, not a modal. Never lock page scrolling for it.
+  document.body.style.removeProperty('overflow');
+
+  const h1 = document.getElementById('ham1');
+  const h2 = document.getElementById('ham2');
+  const h3 = document.getElementById('ham3');
+  if (h1) { h1.classList.toggle('rotate-45', isOpening); h1.classList.toggle('translate-y-1.5', isOpening); }
+  if (h2) h2.classList.toggle('opacity-0', isOpening);
+  if (h3) { h3.classList.toggle('-rotate-45', isOpening); h3.classList.toggle('-translate-y-1.5', isOpening); }
 }
 // Actual TikTok video cards: load public thumbnail metadata and link each image to the original video.
 const feedData = [
@@ -135,7 +145,7 @@ function startCountdown(){
   tick(); setInterval(tick,1000);
 }
 document.addEventListener('DOMContentLoaded',()=>{ renderFeed(); startCountdown(); refreshTokenChart(); tokenChartRefreshTimer = setInterval(refreshTokenChart, 60000); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('cardModal'); closeModal('pdfModal'); const mm=document.getElementById('mobileMenu'); if(mm && !mm.classList.contains('hidden')){ mm.classList.add('hidden'); document.body.style.overflow=''; } } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('cardModal'); closeModal('pdfModal'); const mm=document.getElementById('mobileMenu'); if(mm && !mm.classList.contains('hidden')){ mm.classList.add('hidden'); document.body.style.removeProperty('overflow'); } } });
 
 
 // Custom Solana candlestick chart powered by GeckoTerminal's public on-chain pool/OHLCV API.
