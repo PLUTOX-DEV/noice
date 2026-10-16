@@ -68,19 +68,33 @@ document.addEventListener('DOMContentLoaded',()=>{ renderFeed(); startCountdown(
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal('cardModal'); closeModal('pdfModal'); const mm=document.getElementById('mobileMenu'); if(mm && !mm.classList.contains('hidden')){ mm.classList.add('hidden'); document.body.style.overflow=''; } } });
 
 
-// Live Solana market chart. Never fabricate market metrics: display values only from DEX Screener.
+// Custom Solana candlestick chart powered by GeckoTerminal's public on-chain pool/OHLCV API.
 const NOICE_TOKEN_MINT = 'Exyiv42pjmJtvEi24D3saJJnRCVFwGuj2SVYrCg5moon';
+const GECKO_API = 'https://api.geckoterminal.com/api/v2';
+const CHART_INTERVALS = {
+  '5m': { timeframe: 'minute', aggregate: 5 },
+  '15m': { timeframe: 'minute', aggregate: 15 },
+  '1h': { timeframe: 'hour', aggregate: 1 },
+  '4h': { timeframe: 'hour', aggregate: 4 }
+};
 let tokenChartRefreshTimer = null;
 let tokenChartRequest = 0;
+let activeChartInterval = '5m';
+let activePoolAddress = '';
+let activePoolAttributes = null;
+let noiceChart = null;
+let noiceCandleSeries = null;
+let chartResizeObserver = null;
+
 function formatUsd(value) {
-  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
   const n = Number(value);
   if (Math.abs(n) >= 1) return '$' + n.toLocaleString('en-US', { maximumFractionDigits: 4 });
   if (n === 0) return '$0';
   return '$' + n.toLocaleString('en-US', { maximumSignificantDigits: 4 });
 }
 function formatCompactUsd(value) {
-  if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—';
+  if (value === null || value === undefined || value === '' || !Number.isFinite(Number(value))) return '—';
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 2 }).format(Number(value));
 }
 function setTokenChartStatus(message) {
@@ -93,64 +107,212 @@ function setTokenMetric(id, value, className) {
   el.textContent = value;
   if (className) el.className = className;
 }
-function refreshTokenChart() {
+async function chartFetch(url) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 14000);
+  try {
+    const response = await fetch(url, {
+      headers: { accept: 'application/json', 'accept-version': '20230203' },
+      signal: controller.signal,
+      cache: 'no-store'
+    });
+    if (!response.ok) throw new Error('Market data returned HTTP ' + response.status);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+function showChartFallback(title, message) {
+  const frame = document.getElementById('tokenChartFrame');
+  if (!frame) return;
+  frame.innerHTML = '';
+  const placeholder = document.createElement('div');
+  placeholder.className = 'chart-placeholder';
+  const mark = document.createElement('div');
+  mark.className = 'chart-placeholder-mark';
+  mark.textContent = 'N';
+  const heading = document.createElement('p');
+  heading.className = 'mt-4 font-black tracking-widest';
+  heading.textContent = title;
+  const detail = document.createElement('p');
+  detail.className = 'mt-2 max-w-md text-xs text-white/45 leading-relaxed';
+  detail.textContent = message;
+  const actions = document.createElement('div');
+  actions.className = 'mt-5 flex flex-wrap justify-center gap-2';
+  const links = [
+    { text: 'OPEN BIRDEYE ↗', href: 'https://birdeye.so/token/' + encodeURIComponent(NOICE_TOKEN_MINT) + '?chain=solana' },
+    { text: 'OPEN DEX SCREENER ↗', href: 'https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT) }
+  ];
+  links.forEach(item => {
+    const link = document.createElement('a');
+    link.href = item.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'inline-flex px-4 py-3 rounded-full bg-white text-black text-[10px] font-black';
+    link.textContent = item.text;
+    actions.appendChild(link);
+  });
+  placeholder.append(mark, heading, detail, actions);
+  frame.appendChild(placeholder);
+}
+function initNoiceChart() {
+  const frame = document.getElementById('tokenChartFrame');
+  if (!frame || noiceChart) return;
+  if (!window.LightweightCharts) {
+    showChartFallback('CHART LIBRARY UNAVAILABLE', 'The chart could not load in this browser. Open the token on Birdeye to view its live chart.');
+    return;
+  }
+  frame.innerHTML = '';
+  const host = document.createElement('div');
+  host.id = 'noiceCandleChart';
+  frame.appendChild(host);
+  noiceChart = LightweightCharts.createChart(host, {
+    width: Math.max(320, frame.clientWidth),
+    height: Math.max(360, frame.clientHeight),
+    layout: { background: { type: 'solid', color: '#07070a' }, textColor: '#a7a7b4', fontFamily: 'Space Grotesk, sans-serif' },
+    grid: { vertLines: { color: 'rgba(255,255,255,0.045)' }, horzLines: { color: 'rgba(255,255,255,0.045)' } },
+    rightPriceScale: { borderColor: 'rgba(255,255,255,0.10)' },
+    timeScale: { borderColor: 'rgba(255,255,255,0.10)', timeVisible: true, secondsVisible: false },
+    crosshair: { vertLine: { color: 'rgba(60,207,255,0.35)' }, horzLine: { color: 'rgba(60,207,255,0.35)' } },
+    handleScroll: true,
+    handleScale: true
+  });
+  noiceCandleSeries = noiceChart.addCandlestickSeries({
+    upColor: '#22c55e',
+    downColor: '#ff477e',
+    borderUpColor: '#22c55e',
+    borderDownColor: '#ff477e',
+    wickUpColor: '#22c55e',
+    wickDownColor: '#ff477e',
+    priceLineVisible: true,
+    lastValueVisible: true
+  });
+  if (window.ResizeObserver) {
+    chartResizeObserver = new ResizeObserver(() => {
+      if (noiceChart && frame.clientWidth) noiceChart.applyOptions({
+        width: frame.clientWidth,
+        height: Math.max(360, frame.clientHeight)
+      });
+    });
+    chartResizeObserver.observe(frame);
+  } else {
+    window.addEventListener('resize', resizeNoiceChart);
+  }
+}
+function resizeNoiceChart() {
+  const frame = document.getElementById('tokenChartFrame');
+  if (noiceChart && frame) noiceChart.applyOptions({ width: frame.clientWidth, height: Math.max(360, frame.clientHeight) });
+}
+async function resolveNoicePool() {
+  const url = GECKO_API + '/networks/solana/tokens/' + encodeURIComponent(NOICE_TOKEN_MINT) + '/pools?include=base_token,quote_token';
+  const result = await chartFetch(url);
+  const pools = Array.isArray(result.data) ? result.data : [];
+  const candidates = pools.map(pool => {
+    const attrs = pool.attributes || {};
+    const baseId = pool.relationships?.base_token?.data?.id || '';
+    const quoteId = pool.relationships?.quote_token?.data?.id || '';
+    const isBase = baseId.endsWith('_' + NOICE_TOKEN_MINT) || baseId === 'solana_' + NOICE_TOKEN_MINT;
+    const isQuote = quoteId.endsWith('_' + NOICE_TOKEN_MINT) || quoteId === 'solana_' + NOICE_TOKEN_MINT;
+    return { pool, attrs, isBase, isQuote, liquidity: Number(attrs.reserve_in_usd || 0) };
+  }).filter(item => item.attrs.address && (item.isBase || item.isQuote));
+  candidates.sort((a, b) => b.liquidity - a.liquidity);
+  if (!candidates.length) return null;
+  const selected = candidates[0];
+  activePoolAddress = selected.attrs.address;
+  activePoolAttributes = { ...selected.attrs, tokenIsBase: selected.isBase };
+  return selected;
+}
+function updatePoolMetrics(selected) {
+  const attrs = selected.attrs;
+  const isBase = selected.isBase;
+  const price = isBase ? attrs.base_token_price_usd : attrs.quote_token_price_usd;
+  const change = attrs.price_change_percentage?.h24;
+  const changeNumber = change === null || change === undefined ? NaN : Number(change);
+  const changeText = Number.isFinite(changeNumber) ? (changeNumber > 0 ? '+' : '') + changeNumber.toFixed(2) + '%' : '—';
+  const changeClass = 'mt-2 text-xl md:text-2xl font-black ' + (changeNumber > 0 ? 'text-emerald-400' : changeNumber < 0 ? 'text-rose-400' : '');
+  setTokenMetric('tokenPrice', formatUsd(price));
+  setTokenMetric('tokenChange', changeText, changeClass);
+  setTokenMetric('tokenLiquidity', formatCompactUsd(attrs.reserve_in_usd));
+  setTokenMetric('tokenVolume', formatCompactUsd(attrs.volume_usd?.h24));
+}
+async function loadNoiceCandles(requestId) {
+  if (!activePoolAddress) throw new Error('No pool has been selected');
+  const interval = CHART_INTERVALS[activeChartInterval] || CHART_INTERVALS['5m'];
+  const query = new URLSearchParams({
+    aggregate: String(interval.aggregate),
+    limit: '180',
+    currency: 'usd',
+    token: NOICE_TOKEN_MINT
+  });
+  const url = GECKO_API + '/networks/solana/pools/' + encodeURIComponent(activePoolAddress) + '/ohlcv/' + interval.timeframe + '?' + query.toString();
+  const response = await chartFetch(url);
+  if (requestId !== tokenChartRequest) return;
+  const raw = response.data?.attributes?.ohlcv_list;
+  if (!Array.isArray(raw) || !raw.length) throw new Error('No historical candles are available for this pool yet');
+  const candles = raw.map(row => ({
+    time: Number(row[0]),
+    open: Number(row[1]),
+    high: Number(row[2]),
+    low: Number(row[3]),
+    close: Number(row[4])
+  })).filter(c => Number.isFinite(c.time) && Number.isFinite(c.open) && Number.isFinite(c.high) && Number.isFinite(c.low) && Number.isFinite(c.close) && c.low > 0 && c.high > 0)
+    .sort((a, b) => a.time - b.time)
+    .filter((c, i, list) => i === 0 || c.time !== list[i - 1].time);
+  if (!candles.length) throw new Error('No valid candles were returned');
+  initNoiceChart();
+  if (!noiceCandleSeries) throw new Error('Chart library did not initialize');
+  noiceCandleSeries.setData(candles);
+  noiceChart.timeScale().fitContent();
+  setTokenChartStatus('Live pool candles · GeckoTerminal · ' + activeChartInterval.toUpperCase() + ' · refreshed ' + new Date().toLocaleTimeString());
+}
+async function refreshTokenChart(forceResolvePool = false) {
   const requestId = ++tokenChartRequest;
   const frame = document.getElementById('tokenChartFrame');
   const link = document.getElementById('chartOpenLink');
   if (!frame) return;
-  setTokenChartStatus('Checking indexed Solana trading pairs…');
-  fetch('https://api.dexscreener.com/token-pairs/v1/solana/' + encodeURIComponent(NOICE_TOKEN_MINT), {
-    headers: { accept: 'application/json' },
-    cache: 'no-store'
-  }).then(response => {
-    if (!response.ok) throw new Error('Market data request returned ' + response.status);
-    return response.json();
-  }).then(data => {
+  if (link) link.href = 'https://birdeye.so/token/' + encodeURIComponent(NOICE_TOKEN_MINT) + '?chain=solana';
+  setTokenChartStatus('Loading real pool history…');
+  try {
+    if (forceResolvePool || !activePoolAddress) {
+      const selected = await resolveNoicePool();
+      if (requestId !== tokenChartRequest) return;
+      if (!selected) {
+        setTokenMetric('tokenPrice', '—');
+        setTokenMetric('tokenChange', '—');
+        setTokenMetric('tokenLiquidity', '—');
+        setTokenMetric('tokenVolume', '—');
+        showChartFallback('NO INDEXED POOL FOUND', 'No public pool with historical candles was returned for this mint. The chart will not invent price history. Try the Birdeye or DEX Screener market pages.');
+        setTokenChartStatus('No indexed pool found for this token address.');
+        return;
+      }
+      updatePoolMetrics(selected);
+    } else if (activePoolAttributes) {
+      updatePoolMetrics({ attrs: activePoolAttributes, isBase: activePoolAttributes.tokenIsBase });
+    }
+    await loadNoiceCandles(requestId);
+  } catch (error) {
     if (requestId !== tokenChartRequest) return;
-    const pairs = Array.isArray(data) ? data : (Array.isArray(data.pairs) ? data.pairs : []);
-    const solanaPairs = pairs.filter(pair => pair && pair.chainId === 'solana' && pair.pairAddress);
-    solanaPairs.sort((a, b) => Number(b.liquidity?.usd || 0) - Number(a.liquidity?.usd || 0));
-    const pair = solanaPairs[0];
-    if (!pair) {
-      frame.innerHTML = '<div class="chart-placeholder"><div class="chart-placeholder-mark">N</div><p class="mt-4 font-black tracking-widest">NO INDEXED MARKET FOUND</p><p class="mt-2 max-w-md text-xs text-white/45 leading-relaxed">DEX Screener has not returned a Solana trading pair for this address yet. The chart is intentionally left blank rather than showing invented prices.</p><a class="mt-5 inline-flex px-5 py-3 rounded-full bg-white text-black text-xs font-black" href="https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT) + '" target="_blank" rel="noopener noreferrer">CHECK DEX SCREENER ↗</a></div>';
-      if (link) link.href = 'https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT);
-      setTokenMetric('tokenPrice', '—');
-      setTokenMetric('tokenChange', '—');
-      setTokenMetric('tokenLiquidity', '—');
-      setTokenMetric('tokenVolume', '—');
-      setTokenChartStatus('No indexed Solana pair found for this mint. Check back later or open DEX Screener directly.');
-      return;
+    const message = error && error.name === 'AbortError'
+      ? 'The market-data request timed out.'
+      : 'The public market-data source could not return chart candles.';
+    setTokenChartStatus(message + ' Open Birdeye for its own live chart, or retry here.');
+    if (!noiceCandleSeries || !noiceChart) {
+      showChartFallback('LIVE CANDLES UNAVAILABLE', message + ' This can happen when a token has no indexed pool or the public API is temporarily unavailable.');
     }
-    const pairUrl = pair.url || ('https://dexscreener.com/solana/' + pair.pairAddress);
-    const change = pair.priceChange && pair.priceChange.h24;
-    const changeText = change === undefined || change === null || !Number.isFinite(Number(change)) ? '—' : (Number(change) > 0 ? '+' : '') + Number(change).toFixed(2) + '%';
-    const changeClass = 'mt-2 text-xl md:text-2xl font-black ' + (change > 0 ? 'text-emerald-400' : change < 0 ? 'text-rose-400' : '');
-    setTokenMetric('tokenPrice', formatUsd(pair.priceUsd));
-    setTokenMetric('tokenChange', changeText, changeClass);
-    setTokenMetric('tokenLiquidity', formatCompactUsd(pair.liquidity && pair.liquidity.usd));
-    setTokenMetric('tokenVolume', formatCompactUsd(pair.volume && pair.volume.h24));
-    if (link) link.href = pairUrl;
-    let iframe = frame.querySelector('iframe');
-    if (!iframe || frame.dataset.pairAddress !== pair.pairAddress) {
-      frame.innerHTML = '';
-      iframe = document.createElement('iframe');
-      iframe.title = 'Live DEX Screener chart for the selected Solana token pair';
-      iframe.loading = 'lazy';
-      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-      iframe.allow = 'clipboard-write';
-      iframe.src = 'https://dexscreener.com/solana/' + encodeURIComponent(pair.pairAddress) + '?embed=1&theme=dark&trades=0&info=0';
-      frame.appendChild(iframe);
-      frame.dataset.pairAddress = pair.pairAddress;
-    }
-    const baseName = pair.baseToken && pair.baseToken.name ? pair.baseToken.name : 'Token';
-    const quoteName = pair.quoteToken && pair.quoteToken.symbol ? pair.quoteToken.symbol : 'pair';
-    setTokenChartStatus('Showing ' + baseName + ' / ' + quoteName + ' · DEX Screener · updated ' + new Date().toLocaleTimeString());
-  }).catch(error => {
-    if (requestId !== tokenChartRequest) return;
-    setTokenChartStatus('Market data could not be loaded right now. Check your connection or open DEX Screener directly.');
-    if (!frame.querySelector('iframe')) {
-      frame.innerHTML = '<div class="chart-placeholder"><div class="chart-placeholder-mark">N</div><p class="mt-4 font-black tracking-widest">MARKET DATA TEMPORARILY UNAVAILABLE</p><p class="mt-2 text-xs text-white/45">Please try again in a moment.</p><button type="button" onclick="refreshTokenChart()" class="mt-5 px-5 py-3 rounded-full border border-white/15 text-xs font-black hover:border-[#FF2D7B]">TRY AGAIN</button></div>';
-    }
-    if (link) link.href = 'https://dexscreener.com/solana/' + encodeURIComponent(NOICE_TOKEN_MINT);
-  });
+  }
 }
+function setChartInterval(nextInterval) {
+  if (!CHART_INTERVALS[nextInterval] || activeChartInterval === nextInterval) return;
+  activeChartInterval = nextInterval;
+  document.querySelectorAll('[data-chart-interval]').forEach(button => {
+    const active = button.dataset.chartInterval === nextInterval;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  refreshTokenChart();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-chart-interval]').forEach(button => {
+    button.addEventListener('click', () => setChartInterval(button.dataset.chartInterval));
+  });
+});
